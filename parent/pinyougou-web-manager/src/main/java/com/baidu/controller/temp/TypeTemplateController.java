@@ -39,4 +39,46 @@ public class TypeTemplateController {
         }
     }
 
+    /**
+     * 回显模板
+     * @param id
+     * @return
+     */
+    @RequestMapping("/findOne.do")
+    public TypeTemplate findOne(Long id){
+        return typeTemplateService.findOne(id);
+    }
+
+    /**
+     * 修改模板
+     * @param typeTemplate
+     * @return
+     */
+    @RequestMapping("/update.do")
+    public Result update(@RequestBody TypeTemplate typeTemplate){
+        try {
+            typeTemplateService.update(typeTemplate);
+            return new Result(true,"修改成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result(false,"修改失败");
+        }
+    }
+
+    /**
+     * 批量删除
+     * @param ids
+     * @return
+     */
+    @RequestMapping("/delete.do")
+    public Result delete(Long[] ids){
+        try {
+            typeTemplateService.delete(ids);
+            return new Result(true,"删除成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new Result(false,"删除失败");
+        }
+    }
+
 }

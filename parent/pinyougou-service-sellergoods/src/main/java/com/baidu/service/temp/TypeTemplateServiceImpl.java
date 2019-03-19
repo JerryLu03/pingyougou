@@ -9,7 +9,7 @@ import com.baidu.pojo.template.TypeTemplate;
 import com.baidu.pojo.template.TypeTemplateQuery;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-
+import org.springframework.transaction.annotation.Transactional;
 
 
 import javax.annotation.Resource;
@@ -55,4 +55,40 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
     public void add(TypeTemplate typeTemplate) {
         typeTemplateDao.insertSelective(typeTemplate);
     }
+
+    /**
+     * 修改
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public TypeTemplate findOne(Long id) {
+       return typeTemplateDao.selectByPrimaryKey(id);
+    }
+
+    /**
+     * 修改模板
+     *
+     * @param typeTemplate
+     */
+    @Transactional
+    @Override
+    public void update(TypeTemplate typeTemplate) {
+        typeTemplateDao.updateByPrimaryKeySelective(typeTemplate);
+    }
+
+
+    @Override
+    public void delete(Long[] ids) {
+        if (ids !=null && ids.length>0){
+            for (Long id : ids){
+                typeTemplateDao.deleteByPrimaryKey(id);
+            }
+
+            typeTemplateDao.deleteByPrimaryKeys(ids);
+        }
+    }
+
+
 }

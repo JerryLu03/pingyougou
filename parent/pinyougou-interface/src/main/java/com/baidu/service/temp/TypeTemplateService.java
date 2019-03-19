@@ -20,4 +20,24 @@ public interface TypeTemplateService {
      * @return
      */
     void add(TypeTemplate typeTemplate);
+
+    /**
+     * 回显模板
+     * @param id
+     * @return
+     */
+    TypeTemplate findOne(Long id);
+
+
+    /**
+     * 修改模板
+     * @param typeTemplate
+     */
+    void update(TypeTemplate typeTemplate);
+
+    /**
+     * 删除模板
+     * @param ids
+     */
+    void delete(Long[] ids);
 }

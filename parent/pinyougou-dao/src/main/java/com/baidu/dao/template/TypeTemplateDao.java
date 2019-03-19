@@ -29,5 +29,8 @@ public interface TypeTemplateDao {
 
     int updateByPrimaryKey(TypeTemplate record);
 
+    //批量删除
+    void deleteByPrimaryKeys(Long[] ids);
+
 
 }
