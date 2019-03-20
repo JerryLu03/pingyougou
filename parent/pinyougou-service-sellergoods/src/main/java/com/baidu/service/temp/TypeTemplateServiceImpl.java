@@ -57,7 +57,7 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
     }
 
     /**
-     * 修改
+     * 回显
      *
      * @param id
      * @return
