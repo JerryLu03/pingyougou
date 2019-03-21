@@ -30,4 +30,14 @@ public class ItemCatServiceImpl implements ItemCatService {
         List<ItemCat> itemCats = itemCatDao.selectByExample(query);
         return itemCats;
     }
+
+    /**
+     * 保存分类
+     *
+     * @param itemCat
+     */
+    @Override
+    public void add(ItemCat itemCat) {
+        itemCatDao.insertSelective(itemCat);
+    }
 }

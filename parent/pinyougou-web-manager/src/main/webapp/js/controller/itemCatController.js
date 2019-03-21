@@ -1,5 +1,5 @@
  //控制层 
-app.controller('itemCatController' ,function($scope,$controller   ,itemCatService){	
+app.controller('itemCatController' ,function($scope,$controller ,itemCatService,typeTemplateService){
 	
 	$controller('baseController',{$scope:$scope});//继承
 	
@@ -10,7 +10,15 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 				$scope.list=response;
 			}			
 		);
-	}    
+	}
+    /**
+	 *模板下拉框列表数据
+     */
+	$scope.findTypeTemplates = function () {
+        typeTemplateService.findAll().success(function (responses) {
+			$scope.typeTemplates = responses;
+        })
+    }
 	
 	//分页
 	$scope.findPage=function(page,rows){			
@@ -37,13 +45,15 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 		if($scope.entity.id!=null){//如果有ID
 			serviceObject=itemCatService.update( $scope.entity ); //修改  
 		}else{
+			$scope.entity.parentId = $scope.pid;
 			serviceObject=itemCatService.add( $scope.entity  );//增加 
 		}				
 		serviceObject.success(
 			function(response){
 				if(response.flag){
 					//重新查询 
-		        	$scope.reloadList();//重新加载
+                    // $scope.reloadList();//重新加载
+					$scope.findByParentId($scope.pid);
 				}else{
 					alert(response.message);
 				}
@@ -78,9 +88,11 @@ app.controller('itemCatController' ,function($scope,$controller   ,itemCatServic
 	}
 	
 	// 根据父ID查询分类
+	$scope.pid=0; //定义pid
 	$scope.findByParentId =function(parentId){
 		itemCatService.findByParentId(parentId).success(function(response){
 			$scope.list=response;
+			$scope.pid = parentId;
 		});
 	}
 	

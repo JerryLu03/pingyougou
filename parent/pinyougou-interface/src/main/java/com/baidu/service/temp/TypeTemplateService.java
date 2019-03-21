@@ -3,6 +3,8 @@ package com.baidu.service.temp;
 import com.baidu.entity.PageResult;
 import com.baidu.pojo.template.TypeTemplate;
 
+import java.util.List;
+
 public interface TypeTemplateService {
 
     /**
@@ -40,4 +42,10 @@ public interface TypeTemplateService {
      * @param ids
      */
     void delete(Long[] ids);
+
+    /**
+     * 新增分类时，加载模板列表
+     * @return
+     */
+    List<TypeTemplate> findAll();
 }

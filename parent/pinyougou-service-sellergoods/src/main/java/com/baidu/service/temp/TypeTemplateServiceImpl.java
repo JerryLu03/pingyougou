@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import javax.annotation.Resource;
+import java.util.List;
 
 
 @Service
@@ -88,6 +89,16 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
 
             typeTemplateDao.deleteByPrimaryKeys(ids);
         }
+    }
+
+    /**
+     * 新增分类时，加载模板列表
+     *
+     * @return
+     */
+    @Override
+    public List<TypeTemplate> findAll() {
+        return typeTemplateDao.selectByExample(null);
     }
 
 
