@@ -6,6 +6,9 @@ import com.baidu.service.temp.TypeTemplateService;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/typeTemplate")
 public class TypeTemplateController {
@@ -18,5 +21,10 @@ public class TypeTemplateController {
     @RequestMapping("/findOne.do")
     public TypeTemplate findOne(Long id){
         return typeTemplateService.findOne(id);
+    }
+
+    @RequestMapping("/findBySpecList.do")
+    public List<Map> findBySpecList(Long id){
+        return typeTemplateService.findBySpecList(id);
     }
 }

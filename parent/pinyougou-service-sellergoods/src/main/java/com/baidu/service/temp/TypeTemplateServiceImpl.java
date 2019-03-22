@@ -2,9 +2,13 @@ package com.baidu.service.temp;
 
 import com.alibaba.dubbo.config.annotation.Service;
 
+import com.alibaba.fastjson.JSON;
+import com.baidu.dao.specification.SpecificationOptionDao;
 import com.baidu.dao.template.TypeTemplateDao;
 import com.baidu.entity.PageResult;
 
+import com.baidu.pojo.specification.SpecificationOption;
+import com.baidu.pojo.specification.SpecificationOptionQuery;
 import com.baidu.pojo.template.TypeTemplate;
 import com.baidu.pojo.template.TypeTemplateQuery;
 import com.github.pagehelper.Page;
@@ -14,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -21,6 +26,10 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
      //注入dao
     @Resource
     private TypeTemplateDao typeTemplateDao;
+
+
+    @Resource
+    private SpecificationOptionDao specificationOptionDao;
 
 
     /**
@@ -99,6 +108,33 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
     @Override
     public List<TypeTemplate> findAll() {
         return typeTemplateDao.selectByExample(null);
+    }
+
+    /**
+     * 新增商品选择三级分类时，加载商品规格选项
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public List<Map> findBySpecList(Long id) {
+        //通过模板id获取规格
+        TypeTemplate typeTemplate = typeTemplateDao.selectByPrimaryKey(id);
+        String specIds = typeTemplate.getSpecIds();
+        List<Map> specList = JSON.parseArray(specIds,Map.class);
+        //通过规格id获取规格选项
+        if (specList != null && specList.size()>0){
+            for (Map map : specList){
+                Long specId = Long.parseLong(map.get("id").toString());
+                //通过规格id获取规格选项
+                SpecificationOptionQuery query = new SpecificationOptionQuery();
+                query.createCriteria().andSpecIdEqualTo(specId);
+                List<SpecificationOption> options = specificationOptionDao.selectByExample(query);
+                //封装到map
+                map.put("options",options);
+            }
+        }
+        return specList;
     }
 
 

@@ -3,6 +3,7 @@ package com.baidu.service.itemcat;
 import com.baidu.pojo.item.ItemCat;
 
 import java.util.List;
+import java.util.Map;
 
 public interface ItemCatService {
 
@@ -25,4 +26,6 @@ public interface ItemCatService {
      * @return
      */
     ItemCat findOne(Long id);
+
+
 }

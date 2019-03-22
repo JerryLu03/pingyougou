@@ -4,6 +4,7 @@ import com.baidu.entity.PageResult;
 import com.baidu.pojo.template.TypeTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 public interface TypeTemplateService {
 
@@ -48,4 +49,11 @@ public interface TypeTemplateService {
      * @return
      */
     List<TypeTemplate> findAll();
+
+    /**
+     * 新增商品选择三级分类时，加载商品规格选项
+     * @param id
+     * @return
+     */
+    List<Map> findBySpecList(Long id);
 }
