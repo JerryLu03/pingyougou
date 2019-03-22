@@ -18,4 +18,11 @@ public interface ItemCatService {
      * @param itemCat
      */
     void add(ItemCat itemCat);
+
+    /**
+     * 新增商品选择三级分类时，加载商品模板
+     * @param id
+     * @return
+     */
+    ItemCat findOne(Long id);
 }

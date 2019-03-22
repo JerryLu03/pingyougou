@@ -40,4 +40,17 @@ public class ItemCatServiceImpl implements ItemCatService {
     public void add(ItemCat itemCat) {
         itemCatDao.insertSelective(itemCat);
     }
+
+    /**
+     * 新增商品选择三级分类时，加载商品模板
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public ItemCat findOne(Long id) {
+        return itemCatDao.selectByPrimaryKey(id);
+    }
+
+
 }

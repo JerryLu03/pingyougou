@@ -8,6 +8,7 @@
 						http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
 
+    <!--放行-->
     <http pattern="/*.html" security="none"/>
     <http pattern="/css/**" security="none"/>
     <http pattern="/img/**" security="none"/>

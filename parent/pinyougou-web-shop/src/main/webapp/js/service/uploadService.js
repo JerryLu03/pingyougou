@@ -11,6 +11,7 @@ app.service("uploadService",function($http){
 			url:'../upload/uploadFile.do',
 			data:formData,
 			headers:{'Content-Type':undefined} ,// Content-Type : text/html  text/plain
+			//将附件进行序列化
 			transformRequest: angular.identity
 		});
 	}
