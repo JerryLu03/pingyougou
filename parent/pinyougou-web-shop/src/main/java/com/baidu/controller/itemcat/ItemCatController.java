@@ -31,4 +31,13 @@ public class ItemCatController {
     public ItemCat findOne(Long id){
         return itemCatService.findOne(id);
     }
+
+    /**
+     * 商品列表回显分类名称
+     * @return
+     */
+    @RequestMapping("/findAll.do")
+    public List<ItemCat> findAll(){
+        return itemCatService.findAll();
+    }
 }

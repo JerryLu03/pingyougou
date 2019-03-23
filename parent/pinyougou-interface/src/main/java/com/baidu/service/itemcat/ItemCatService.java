@@ -27,5 +27,11 @@ public interface ItemCatService {
      */
     ItemCat findOne(Long id);
 
+    /**
+     * 查询所有商品分类
+     * @return
+     */
+    List<ItemCat> findAll();
+
 
 }

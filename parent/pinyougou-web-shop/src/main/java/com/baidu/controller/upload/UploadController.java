@@ -1,4 +1,4 @@
-package com.baidu.upload;
+package com.baidu.controller.upload;
 
 import com.baidu.entity.Result;
 import com.baidu.utils.fdfs.FastDFSClient;

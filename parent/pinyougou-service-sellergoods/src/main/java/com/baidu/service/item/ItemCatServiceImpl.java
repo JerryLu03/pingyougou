@@ -64,7 +64,15 @@ public class ItemCatServiceImpl implements ItemCatService {
         return itemCatDao.selectByPrimaryKey(id);
     }
 
-
+    /**
+     * 查询所有商品分类
+     *
+     * @return
+     */
+    @Override
+    public List<ItemCat> findAll() {
+        return itemCatDao.selectByExample(null);
+    }
 
 
 }

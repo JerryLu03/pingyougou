@@ -19,8 +19,12 @@
     <script src="../plugins/bootstrap/js/bootstrap.min.js"></script>
   
     <script src="../plugins/adminLTE/js/app.min.js"></script>
-    
 
+    <!-- 引入angular的js -->
+    <script type="text/javascript" src="../plugins/angularjs/angular.min.js"></script>
+    <script type="text/javascript" src="../js/base.js"></script>
+    <script type="text/javascript" src="../js/controller/indexController.js"></script>
+    <script type="text/javascript" src="../js/service/loginService.js"></script>
     
     <script type="text/javascript">
    
@@ -35,7 +39,7 @@
 
 </head>
 
-<body class="hold-transition skin-blue sidebar-mini">
+<body class="hold-transition skin-blue sidebar-mini" ng-model="pinyougou" ng-controller="indexController" ng-init="showName()">
 
     <div class="wrapper">
 
@@ -266,8 +270,8 @@
                                     <img src="../img/user2-160x160.jpg" class="img-circle" alt="User Image">
 
                                     <p>
-                                       chendahai 
-                                        <small>最后登录 11:20AM</small>
+                                        {{loginName}}
+                                        <small>当前时间：{{date}} {{time}}</small>
                                     </p>
                                 </li>
                                 
