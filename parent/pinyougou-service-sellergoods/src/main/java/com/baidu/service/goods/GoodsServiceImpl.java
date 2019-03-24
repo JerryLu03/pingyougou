@@ -247,6 +247,46 @@ public class GoodsServiceImpl implements GoodsService {
         return new PageResult(p.getTotal(),p.getResult());
     }
 
+    /**
+     * 审核商品
+     *
+     * @param ids
+     * @param status
+     */
+    @Transactional
+    @Override
+    public void updateStatus(Long[] ids, String status) {
+        if (ids != null && ids.length>0){
+            //1.更新商品状态
+            Goods goods = new Goods();
+            goods.setAuditStatus(status);
+            for (Long id : ids){
+                goods.setId(id);
+                goodsDao.updateByPrimaryKeySelective(goods);
+            }
+        }
+    }
+
+    /**
+     * 商品删除
+     *
+     * @param ids
+     */
+    @Override
+    public void delete(Long[] ids) {
+        if (ids != null && ids.length>0){
+            Goods goods = new Goods();
+            goods.setIsDelete("1");//设置成1，表示逻辑删除
+            for (Long id : ids){
+                goods.setId(id);
+                goodsDao.updateByPrimaryKeySelective(goods);
+                // TODO 2、商品下架
+                // TODO 3、删除商品详情的静态页【可选】
+            }
+
+        }
+    }
+
     //设置库存属性
     private void setAttributeForItem(Goods goods,GoodsDesc goodsDesc,Item item){
         String itemImage = goodsDesc.getItemImages();

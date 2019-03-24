@@ -41,4 +41,20 @@ public interface GoodsService {
      * @return
      */
     PageResult searchForManager(Integer page,Integer rows,Goods goods);
+
+    /**
+     * 审核商品
+     *
+     * @param ids
+     * @param status
+     */
+    void updateStatus(Long[] ids,String status);
+
+
+    /**
+     * 商品删除
+     * @param ids
+     */
+    void delete(Long[] ids);
+
 }
