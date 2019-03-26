@@ -1,4 +1,4 @@
-package com.baidu.controller;
+package com.baidu.controller.content;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.baidu.pojo.ad.Content;

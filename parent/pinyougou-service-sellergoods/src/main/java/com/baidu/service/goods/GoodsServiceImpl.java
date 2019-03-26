@@ -17,6 +17,7 @@ import com.baidu.pojo.item.ItemQuery;
 import com.baidu.vo.GoodsVo;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -46,6 +47,9 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Resource
     private SellerDao sellerDao;
+
+    @Resource
+    private SolrTemplate solrTemplate;
 
     /**
      * 商品录入
@@ -263,8 +267,34 @@ public class GoodsServiceImpl implements GoodsService {
             for (Long id : ids){
                 goods.setId(id);
                 goodsDao.updateByPrimaryKeySelective(goods);
+                if ("1".equals(status)){
+                    //TODO 商品上架，将数据存到索引库中
+                    //为了测试检索，将库存所有数据存到索引库中
+                    dataImportToSolr();
+
+                    //TODO 生成商品详情静态页
+                }
             }
         }
+    }
+
+    //将库存所有数据存到索引库中
+    private void dataImportToSolr() {
+        //首先将库存的数据查询出来
+        ItemQuery itemQuery = new ItemQuery();
+        itemQuery.createCriteria().andStatusEqualTo("1");
+        List<Item> items = itemDao.selectByExample(itemQuery);
+        if (items != null && items.size()>0){
+            for (Item item : items){
+                String spec = item.getSpec();
+                Map<String,String> map = JSON.parseObject(spec, Map.class);
+                item.setSpecMap(map);
+            }
+
+            solrTemplate.saveBeans(items);
+            solrTemplate.commit();
+        }
+
     }
 
     /**

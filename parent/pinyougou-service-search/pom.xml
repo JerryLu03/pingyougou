@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>  
   <artifactId>pinyougou-service-search</artifactId>  
   <!--依赖interface、dao工程-->  
-  <packaging>war</packaging>
+  <packaging>war</packaging>  
   <dependencies> 
     <dependency> 
       <groupId>com.baidu</groupId>  
