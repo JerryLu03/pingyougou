@@ -13,6 +13,8 @@ import com.baidu.pojo.specification.SpecificationOptionQuery;
 import com.baidu.pojo.specification.SpecificationQuery;
 import com.baidu.pojo.template.TypeTemplate;
 import com.baidu.service.itemcat.ItemCatService;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.solr.core.SolrTemplate;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -25,6 +27,9 @@ public class ItemCatServiceImpl implements ItemCatService {
     @Resource
     private ItemCatDao itemCatDao;
 
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
+
 
 
     /**
@@ -33,8 +38,18 @@ public class ItemCatServiceImpl implements ItemCatService {
      * @param parentId
      * @return
      */
+    // 查询所有分类放入缓存：分类名称---模板id
     @Override
     public List<ItemCat> findByParentId(Long parentId) {
+        //将分类的数据写入缓存中
+        //保存的数据：key(分类名称)--value(模板id)，采用数据结构hash
+        //hash：hset key filed(分类名称) value(模板id)
+        List<ItemCat> itemCatList = itemCatDao.selectByExample(null);
+        for (ItemCat itemCat : itemCatList){
+            redisTemplate.boundHashOps("itemCatList").put(itemCat.getName(),itemCat.getTypeId());
+        }
+
+
         //设置查询条件
         ItemCatQuery query = new ItemCatQuery();
         query.createCriteria().andParentIdEqualTo(parentId);

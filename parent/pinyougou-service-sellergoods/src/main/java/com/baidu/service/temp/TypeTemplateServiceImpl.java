@@ -13,6 +13,7 @@ import com.baidu.pojo.template.TypeTemplate;
 import com.baidu.pojo.template.TypeTemplateQuery;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -31,6 +32,9 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
     @Resource
     private SpecificationOptionDao specificationOptionDao;
 
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
+
 
     /**
      * 查询
@@ -42,6 +46,24 @@ public class TypeTemplateServiceImpl implements TypeTemplateService{
      */
     @Override
     public PageResult search(Integer page, Integer rows, TypeTemplate typeTemplate) {
+
+        //将模板的数据写入缓存中
+        List<TypeTemplate> typeTemplateList = typeTemplateDao.selectByExample(null);
+        if (typeTemplateList != null && typeTemplateList.size()>0){
+            for (TypeTemplate template : typeTemplateList){
+                //从模板中拿到品牌结果集
+                String brandIds = template.getBrandIds();
+                //把拿到的String数据类型转到list集合中
+                List<Map> brandList = JSON.parseArray(brandIds,Map.class);
+                //品牌结果集写入缓存
+                redisTemplate.boundHashOps("brandList").put(template.getId(),brandList);
+                //规格结果集写入缓存（规格和规格选项）
+                List<Map> specList = findBySpecList(template.getId());
+                redisTemplate.boundHashOps("specList").put(template.getId(),specList);
+
+            }
+        }
+
         //1.设置分页
         PageHelper.startPage(page,rows);
         //2.设置查询条件
