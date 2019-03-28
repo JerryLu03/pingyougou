@@ -268,15 +268,36 @@ public class GoodsServiceImpl implements GoodsService {
                 goods.setId(id);
                 goodsDao.updateByPrimaryKeySelective(goods);
                 if ("1".equals(status)){
-                    //TODO 商品上架，将数据存到索引库中
+                    //商品上架，将数据存到索引库中
+                    saveItemToSolr(id);
                     //为了测试检索，将库存所有数据存到索引库中
-                    dataImportToSolr();
+//                    dataImportToSolr();
 
                     //TODO 生成商品详情静态页
                 }
             }
         }
     }
+
+    //将商品对应的库存保存到索引库中
+    private void saveItemToSolr(Long id) {
+        ItemQuery itemQuery = new ItemQuery();
+        //条件：根据商品id查询对应的库存，并且库存大于0的
+        itemQuery.createCriteria().andGoodsIdEqualTo(id).andStatusEqualTo("1")
+                .andIsDefaultEqualTo("1").andNumGreaterThan(0);
+        List<Item> items = itemDao.selectByExample(itemQuery);
+        if (items != null && items.size()>0){
+            for (Item item:items){
+                String spec = item.getSpec();
+                Map<String,String> map = JSON.parseObject(spec,Map.class);
+                item.setSpecMap(map);
+            }
+            solrTemplate.saveBeans(items);
+            solrTemplate.commit();
+        }
+
+    }
+
 
     //将库存所有数据存到索引库中
     private void dataImportToSolr() {

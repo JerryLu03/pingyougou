@@ -1,18 +1,18 @@
 package com.baidu.service.search;
 
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.baidu.entity.Result;
 import com.baidu.pojo.item.Item;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.core.query.*;
 import org.springframework.data.solr.core.query.result.*;
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 @Service
 public class ItemSearchServiceImpl implements ItemSearchService {
 
@@ -33,6 +33,13 @@ public class ItemSearchServiceImpl implements ItemSearchService {
     public Map<String, Object> search(Map<String, String> searchMap) {
         //创建一个大map，封装所有的结果集
         Map<String,Object> resultMap = new HashMap<>();
+        //处理关键字中包含的空格问题
+        String keywords = searchMap.get("keywords");
+        if (keywords !=null && !keywords.equals("")){
+            //去除中间所有空格
+            keywords = keywords.replace(" ", "");
+            searchMap.put("keywords",keywords);
+        }
 
         // 1、根据关键字检索并且分页
 //        Map<String,Object> map = searchForPage(searchMap);
@@ -67,7 +74,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         //通过模板id获取规格规格集
         List<Map> specList = (List<Map>) redisTemplate.boundHashOps("specList").get(typeId);
         map.put("specList",specList);
-        map.put("specList",specList);
+
 
         return map;
     }
@@ -127,6 +134,75 @@ public class ItemSearchServiceImpl implements ItemSearchService {
         highlightOptions.setSimplePrefix("<font color='red'>");
         highlightOptions.setSimplePostfix("</font>");
         query.setHighlightOptions(highlightOptions);
+
+        //设置过滤条件
+        //根据商品分类过滤
+        String category = searchMap.get("category");
+        if (category != null && !category.equals("")){
+            Criteria criteria1 = new Criteria("item_category");
+            criteria1.is(category);
+
+            SimpleFilterQuery filterQuery = new SimpleFilterQuery(criteria1);
+
+            query.addFilterQuery(filterQuery);
+
+        }
+
+        //根据商品品牌过滤
+        String brand = searchMap.get("brand");
+        if (brand != null && !brand.equals("")){
+            Criteria criteria1 = new Criteria("item_brand");
+            criteria1.is(brand);
+
+            SimpleFilterQuery filterQuery = new SimpleFilterQuery(criteria1);
+
+            query.addFilterQuery(filterQuery);
+        }
+
+        //根据商品规格过滤
+        String spec = searchMap.get("spec");
+        if (spec != null && !spec.equals("")){
+            //把集合转成对象，然后取value值
+            Map<String,String> specMap = JSON.parseObject(spec, Map.class);
+            Set<Map.Entry<String, String>> entries = specMap.entrySet();
+            for (Map.Entry<String, String> entry : entries){
+                //拼接"item_spec"+value
+                Criteria criteria1 = new Criteria("item_spec_"+entry.getKey());
+                criteria1.is(entry.getValue());
+
+                SimpleFilterQuery filterQuery = new SimpleFilterQuery(criteria1);
+                 query.addFilterQuery(filterQuery);
+            }
+        }
+        //根据商品价格过滤
+        String price = searchMap.get("price");
+        if (price != null && !price.equals("")){
+            //价格区间段
+            String[] prices = price.split("-");
+            Criteria criteria1 = new Criteria("item_price");
+
+            if (price.contains("*")){
+                criteria1.greaterThanEqual(prices[0]);
+            }else {
+                criteria1.between(prices[0],prices[1],true,true);
+            }
+            SimpleFilterQuery filterQuery = new SimpleFilterQuery(criteria1);
+            query.addFilterQuery(filterQuery);
+        }
+
+        //添加排序条件
+        //根据新品，价格排序
+        String sort = searchMap.get("sort");
+        if (sort != null && !sort.equals("")){
+            if ("ASC".equals(sort)){
+                Sort s = new Sort(Sort.Direction.ASC,"item_"+searchMap.get("sortField"));
+                query.addSort(s);
+            }else {
+                Sort s = new Sort(Sort.Direction.DESC,"item_"+searchMap.get("sortField"));
+                query.addSort(s);
+            }
+        }
+
 
         // 4、根据条件检索
         HighlightPage<Item> highlightPage = solrTemplate.queryForHighlightPage(query, Item.class);
