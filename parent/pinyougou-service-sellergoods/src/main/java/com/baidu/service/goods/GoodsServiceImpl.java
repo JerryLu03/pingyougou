@@ -14,13 +14,18 @@ import com.baidu.pojo.good.GoodsDesc;
 import com.baidu.pojo.good.GoodsQuery;
 import com.baidu.pojo.item.Item;
 import com.baidu.pojo.item.ItemQuery;
+import com.baidu.service.staticpage.StaticPageService;
 import com.baidu.vo.GoodsVo;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.core.query.SimpleQuery;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.jms.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +55,13 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Resource
     private SolrTemplate solrTemplate;
+
+
+    @Resource
+    private JmsTemplate jmsTemplate;
+
+    @Resource
+    private Destination topicPageAndSolrDestination;
 
     /**
      * 商品录入
@@ -264,7 +276,7 @@ public class GoodsServiceImpl implements GoodsService {
             //1.更新商品状态
             Goods goods = new Goods();
             goods.setAuditStatus(status);
-            for (Long id : ids){
+            for (final Long id : ids){
                 goods.setId(id);
                 goodsDao.updateByPrimaryKeySelective(goods);
                 if ("1".equals(status)){
@@ -273,7 +285,17 @@ public class GoodsServiceImpl implements GoodsService {
                     //为了测试检索，将库存所有数据存到索引库中
 //                    dataImportToSolr();
 
-                    //TODO 生成商品详情静态页
+                    //3.生成商品详情静态页
+//                    staticPageService.getHtml(id);
+                    //4将消息（商品id）发送到mg
+                    jmsTemplate.send(topicPageAndSolrDestination, new MessageCreator() {
+                        @Override
+                        public Message createMessage(Session session) throws JMSException {
+                            //封装消息体（文本消息体）
+                            TextMessage textMessage = session.createTextMessage(String.valueOf(id));
+                            return textMessage;
+                        }
+                    });
                 }
             }
         }
@@ -282,15 +304,17 @@ public class GoodsServiceImpl implements GoodsService {
     //将商品对应的库存保存到索引库中
     private void saveItemToSolr(Long id) {
         ItemQuery itemQuery = new ItemQuery();
-        //条件：根据商品id查询对应的库存，并且库存大于0的
+        // 条件：根据商品id查询对应的库存，并且库存大于0的
         itemQuery.createCriteria().andGoodsIdEqualTo(id).andStatusEqualTo("1")
                 .andIsDefaultEqualTo("1").andNumGreaterThan(0);
         List<Item> items = itemDao.selectByExample(itemQuery);
-        if (items != null && items.size()>0){
-            for (Item item:items){
+        if(items != null && items.size() > 0){
+            // 设置动态字段：item_spec_内存:32G
+            for (Item item : items) {
+                // 取出规格：spec:{"机身内存":"16G","网络":"联通3G"}
                 String spec = item.getSpec();
-                Map<String,String> map = JSON.parseObject(spec,Map.class);
-                item.setSpecMap(map);
+                Map<String, String> specMap = JSON.parseObject(spec, Map.class);
+                    item.setSpecMap(specMap);
             }
             solrTemplate.saveBeans(items);
             solrTemplate.commit();
@@ -319,7 +343,7 @@ public class GoodsServiceImpl implements GoodsService {
     }
 
     /**
-     * 商品删除
+     * 更新商品删除状态
      *
      * @param ids
      */
@@ -331,7 +355,10 @@ public class GoodsServiceImpl implements GoodsService {
             for (Long id : ids){
                 goods.setId(id);
                 goodsDao.updateByPrimaryKeySelective(goods);
-                // TODO 2、商品下架
+                //2、商品下架
+                SimpleQuery query = new SimpleQuery("item_goodsid:"+id);
+                solrTemplate.delete(query);
+                solrTemplate.commit();
                 // TODO 3、删除商品详情的静态页【可选】
             }
 

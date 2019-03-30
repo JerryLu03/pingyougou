@@ -2,8 +2,10 @@ package com.baidu.service.search;
 
 import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
+import com.baidu.dao.item.ItemDao;
 import com.baidu.entity.Result;
 import com.baidu.pojo.item.Item;
+import com.baidu.pojo.item.ItemQuery;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,6 +24,9 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
     @Resource
     private RedisTemplate<String,Object> redisTemplate;
+
+    @Resource
+    private ItemDao itemDao;
 
     /**
      * 前台系统检索
@@ -60,6 +65,31 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 
 
         return resultMap;
+    }
+
+    /**
+     * 商品上架保存到索引库中
+     *
+     * @param id
+     */
+    @Override
+    public void addItemToSolr(Long id) {
+        ItemQuery itemQuery = new ItemQuery();
+        // 条件：根据商品id查询对应的库存，并且库存大于0的
+        itemQuery.createCriteria().andGoodsIdEqualTo(id).andStatusEqualTo("1")
+                .andIsDefaultEqualTo("1").andNumGreaterThan(0);
+        List<Item> items = itemDao.selectByExample(itemQuery);
+        if(items != null && items.size() > 0){
+            // 设置动态字段：item_spec_内存:32G
+            for (Item item : items) {
+                // 取出规格：spec:{"机身内存":"16G","网络":"联通3G"}
+                String spec = item.getSpec();
+                Map<String, String> specMap = JSON.parseObject(spec, Map.class);
+                item.setSpecMap(specMap);
+            }
+            solrTemplate.saveBeans(items);
+            solrTemplate.commit();
+        }
     }
 
     // 默认加载第一个个分类下的品牌、规格结果集
